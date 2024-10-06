@@ -1,0 +1,63 @@
+local player = game.Players.LocalPlayer
+local screenGui = Instance.new("ScreenGui")
+local resetButton = Instance.new("TextButton")
+local dragButton = Instance.new("TextButton")
+
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+-- 리셋 버튼 설정
+resetButton.Size = UDim2.new(0, 200, 0, 50)
+resetButton.Position = UDim2.new(0.5, -100, 0.5, -75)
+resetButton.Text = "모두 리셋하기"
+resetButton.Parent = screenGui
+
+resetButton.MouseButton1Click:Connect(function()
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p.Character then
+            p.Character:BreakJoints()
+        end
+    end
+end)
+
+-- 드래그 버튼 설정
+dragButton.Size = UDim2.new(0, 200, 0, 50)
+dragButton.Position = UDim2.new(0.5, -100, 0.5, -25)
+dragButton.Text = "드래그하기"
+dragButton.Parent = screenGui
+
+local function makeDraggable(button)
+    local dragging, dragInput, startPos
+
+    local function updatePosition(input)
+        local delta = input.Position - dragInput.Position
+        button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+
+    button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragInput = input
+            startPos = button.Position
+
+            while dragging do
+                dragInput = game:GetService("UserInputService"):GetInputByUserId(input.UserInputId)
+                if dragInput then
+                    updatePosition(dragInput)
+                end
+                wait()
+            end
+        end
+    end)
+
+    button.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    button.InputLeave:Connect(function()
+        dragging = false
+    end)
+end
+
+makeDraggable(dragButton)
